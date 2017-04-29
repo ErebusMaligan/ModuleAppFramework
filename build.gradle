@@ -1,0 +1,8 @@
+apply plugin: 'java'
+
+dependencies {
+	compile fileTree( dir: "../libs", include: ['JUtils.jar', 'TerminalWindow.jar'] )
+}
+
+//The dependencies and ext block MUST come before this script call - otherwise the ext block in common won't know how to set some properties
+apply from: '../gradle/stdlib.gradle'
