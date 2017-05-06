@@ -2,6 +2,7 @@ package state.monitor;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Observable;
 import java.util.concurrent.CountDownLatch;
 
 import process.io.ProcessStreamSiphon;
@@ -13,7 +14,7 @@ import ssh.SSHConstants;
  *
  * Created: Apr 29, 2015, 10:26:24 PM 
  */
-public abstract class MonitorData implements ProcessStreamSiphon {
+public abstract class MonitorData extends Observable implements ProcessStreamSiphon {
 	
 	protected CountDownLatch cdl;
 	

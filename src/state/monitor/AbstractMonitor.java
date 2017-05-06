@@ -1,6 +1,7 @@
 package state.monitor;
 
 import java.util.Observable;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 
 import ssh.SSHConstants;
@@ -36,6 +37,10 @@ public abstract class AbstractMonitor extends Observable implements BroadcastLis
 	
 	int printLoopInfoEvery = 10;
 	
+	protected boolean log = true;
+	
+	protected ConcurrentLinkedQueue<CDLAction> queue = new ConcurrentLinkedQueue<>();
+	
 	public AbstractMonitor( MonitorManager manager, BroadcastManager broadcast, MonitorData lh, SSHSession ssh, long interval ) {
 		this.broadcast = broadcast;
 		this.lh = lh;
@@ -67,12 +72,15 @@ public abstract class AbstractMonitor extends Observable implements BroadcastLis
 						broadcast.broadcast( new BroadcastEvent( AbstractMonitor.this, BroadcastEvent.MONITOR_STATE, BroadcastEvent.ON ) );
 						try {
 							ssh.getMonitorLock();
-							System.out.println( "MONITOR: " + AbstractMonitor.this.getClass().getName() + "  running initial commands..." );
+							if ( log ) {
+								System.out.println( "MONITOR: " + AbstractMonitor.this.getClass().getName() + "  running initial commands..." );
+							}
 							
 							//run initial commands
 							runOnce();
-							
-							System.out.println( "MONITOR: " + AbstractMonitor.this.getClass().getName() + "  finished initial commands." );
+							if ( log ) {
+								System.out.println( "MONITOR: " + AbstractMonitor.this.getClass().getName() + "  finished initial commands." );
+							}
 							if ( kill ) {
 								ssh.returnMonitorLock();
 							}
@@ -81,13 +89,28 @@ public abstract class AbstractMonitor extends Observable implements BroadcastLis
 								if ( ranOnce ) {
 									ssh.getMonitorLock();
 								}
+								if ( log ) {
+									System.out.println( "MONITOR: " + AbstractMonitor.this.getClass().getName() + "  running queued commands..." );
+								}
+								CDLAction a = queue.poll();
+								while ( a != null ) {
+									handleCDL( a );
+									a = queue.poll();
+								}
+								if ( log ) {
+									System.out.println( "MONITOR: " + AbstractMonitor.this.getClass().getName() + "  finished queued commands." );
+								}
 								i++;
 								if ( i == printLoopInfoEvery ) {
-									System.out.println( "MONITOR: " + AbstractMonitor.this.getClass().getName() + "  running standard commands..." );
+									if ( log ) {
+										System.out.println( "MONITOR: " + AbstractMonitor.this.getClass().getName() + "  running standard commands..." );
+									}
 								}
 								runLoop();
 								if ( i == printLoopInfoEvery ) {
-									System.out.println( "MONITOR: " + AbstractMonitor.this.getClass().getName() + "  finished standard commands." );
+									if ( log ) {
+										System.out.println( "MONITOR: " + AbstractMonitor.this.getClass().getName() + "  finished standard commands." );
+									}
 									i = 0;
 								}
 								ranOnce = true;
@@ -100,7 +123,9 @@ public abstract class AbstractMonitor extends Observable implements BroadcastLis
 								}
 								Thread.sleep( interval );
 							}
-							System.out.println( "MONITOR: " + AbstractMonitor.this.getClass().getName() + "  exited normally." );
+							if ( log ) {
+								System.out.println( "MONITOR: " + AbstractMonitor.this.getClass().getName() + "  exited normally." );
+							}
 						} catch ( InterruptedException e ) {
 							ssh.returnMonitorLock(); //do this or other monitor threads will deadlock
 							System.err.println( "MONITOR: " + AbstractMonitor.this.getClass().getName() + "  forced to exit." );
@@ -130,6 +155,12 @@ public abstract class AbstractMonitor extends Observable implements BroadcastLis
 				ssh.sendCommand( SSHConstants.ECHO_CMD + ( base.contains( "grep" ) ? " " : " " + base + " " ) + SSHConstants.COMPLETE );
 			}
 		};
+	}
+	
+	protected void queueCDL( CDLAction a ) {
+		if ( !kill ) {
+			queue.offer( a );
+		}
 	}
 	
 	protected void handleCDL( CDLAction a ) {

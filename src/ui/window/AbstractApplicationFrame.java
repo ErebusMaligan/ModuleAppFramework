@@ -34,7 +34,9 @@ public abstract class AbstractApplicationFrame extends JFrame {
 		setLocation( FRAME_X, FRAME_Y );
 		setSize( FRAME_W, FRAME_H );
 		setTitle( FRAME_TITLE );
-		setIconImage( WindowConstants.APP_ICON.getImage() );
+		if ( WindowConstants.APP_ICON != null ) {
+			setIconImage( WindowConstants.APP_ICON.getImage() );
+		}
 		setDefaultCloseOperation( DO_NOTHING_ON_CLOSE );
 		addWindowListener( new WindowAdapter() {
 			public void windowClosing( WindowEvent e ) {
