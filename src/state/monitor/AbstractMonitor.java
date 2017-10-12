@@ -35,7 +35,7 @@ public abstract class AbstractMonitor extends Observable implements BroadcastLis
 	
 	protected boolean halted = true;
 	
-	int printLoopInfoEvery = 10;
+	protected int printLoopInfoEvery = 10;
 	
 	protected boolean log = true;
 	
