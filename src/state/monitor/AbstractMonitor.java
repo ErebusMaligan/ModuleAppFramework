@@ -41,6 +41,8 @@ public abstract class AbstractMonitor extends Observable implements BroadcastLis
 	
 	protected ConcurrentLinkedQueue<CDLAction> queue = new ConcurrentLinkedQueue<>();
 	
+	protected long queueDelay = 0;
+	
 	public AbstractMonitor( MonitorManager manager, BroadcastManager broadcast, MonitorData lh, SSHSession ssh, long interval ) {
 		this.broadcast = broadcast;
 		this.lh = lh;
@@ -95,6 +97,9 @@ public abstract class AbstractMonitor extends Observable implements BroadcastLis
 								CDLAction a = queue.poll();
 								while ( a != null ) {
 									handleCDL( a );
+									if ( queueDelay != 0 ) {
+										Thread.sleep( queueDelay );
+									}
 									a = queue.poll();
 								}
 								if ( log ) {
