@@ -37,7 +37,7 @@ public abstract class AbstractMonitor extends Observable implements BroadcastLis
 	
 	protected int printLoopInfoEvery = 10;
 	
-	protected boolean log = true;
+	protected boolean log = false;
 	
 	protected ConcurrentLinkedQueue<CDLAction> queue = new ConcurrentLinkedQueue<>();
 	
