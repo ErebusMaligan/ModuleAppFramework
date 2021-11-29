@@ -57,6 +57,8 @@ public class SSHSession extends Observable implements ProcessStreamSiphon, Broad
 	
 	private BroadcastManager broadcast;
 	
+	private int logoutCount = 0;
+	
 	public SSHSession( BroadcastManager broadcast,String processName ) {
 		this.broadcast = broadcast;
 		this.processName = processName;
@@ -143,26 +145,36 @@ public class SSHSession extends Observable implements ProcessStreamSiphon, Broad
 	
 	@Override
 	public void skimMessage( String name, String line ) {
-		if ( line.contains( "Welcome to FreeNAS" ) ) {  //moved the actual connection accept stuff to check for Password first
+		if ( line.contains( "Access granted. Press Return to begin session." ) && !connected ) {
+			sendCommand( "" );
+		}
+		if ( line.trim().startsWith( "Welcome" ) && !connected ) {	
+			try {
+				Thread.sleep( 2000 );
+			} catch ( InterruptedException e1 ) {
+				e1.printStackTrace();
+			}
 			sendCommand( "sudo -iS" );
 			sendCommand( SSH_PW );
-			new Thread( () -> {
-				try {
-					Thread.sleep( 1000 );
-				} catch ( Exception e ) {
-					e.printStackTrace();
-				}
-				connected = true;
-				connecting = false;
-				System.out.println( "SSH Session " + processName + " Connected" );
-				changed();
-			} ).start();
-		} else if ( line.contains( "Using username" ) ) {
-			System.out.println( "SSH Session " + processName + " Disconnected" );
-			shutdownProcess();
-			connected = false;
-			disconnecting = false;
+			try {
+				Thread.sleep( 2000 );
+			} catch ( InterruptedException e1 ) {
+				e1.printStackTrace();
+			}
+			connected = true;
+			connecting = false;
+			System.out.println( "SSH Session " + processName + " Connected" );
 			changed();
+		} else if ( line.contains( "logout" ) && connected ) {
+			logoutCount++;
+			if ( logoutCount == 2 ) {
+				logoutCount = 0;
+				System.out.println( "SSH Session " + processName + " Disconnected" );
+				shutdownProcess();
+				connected = false;
+				disconnecting = false;
+				changed();
+			}
 		}
 	}
 	

@@ -136,8 +136,17 @@ public abstract class ApplicationProvider implements XMLSettingsWriter, Broadcas
 		//auto start stuff
 		if ( ProviderConstants.AUTO ) {
 			sshm.connectAllSessions();
+			while ( sshm.getSSHSessions().stream().anyMatch( s -> !s.isConnected() ) ) {
+				System.out.println( "Waiting for sessions to start" );
+				try {
+					Thread.sleep( 1000 );
+				} catch ( InterruptedException e ) {
+					e.printStackTrace();
+				}
+			}
 			try {
-				Thread.sleep( 1000 );
+				System.out.println( "Waiting 2 seconds for auto start" );
+				Thread.sleep( 2000 );
 			} catch ( InterruptedException e ) {
 				e.printStackTrace();
 			}

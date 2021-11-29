@@ -73,7 +73,9 @@ public abstract class MonitorData extends Observable implements ProcessStreamSip
 	
 	protected void deadSSH() {
 		stopTimeout();
-		cdl.countDown();
+		if ( cdl != null ) {
+			cdl.countDown();
+		}
 	}
 	
 	public boolean didWinError() {
