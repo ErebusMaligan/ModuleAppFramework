@@ -1,9 +1,9 @@
 package state.monitor;
 
-import java.util.Observable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 
+import listeners.BasicObservable;
 import ssh.SSHConstants;
 import ssh.SSHSession;
 import state.control.BroadcastEvent;
@@ -17,7 +17,7 @@ import state.control.Broadcaster;
  *
  * Created: Apr 24, 2015, 11:17:02 PM 
  */
-public abstract class AbstractMonitor extends Observable implements BroadcastListener, Broadcaster {
+public abstract class AbstractMonitor extends BasicObservable implements BroadcastListener, Broadcaster {
 	
 	protected boolean kill = true;
 	
@@ -120,7 +120,6 @@ public abstract class AbstractMonitor extends Observable implements BroadcastLis
 								}
 								ranOnce = true;
 								ssh.returnMonitorLock();
-								setChanged();
 								try {
 									notifyObservers( null );
 								} catch ( Exception e ) {

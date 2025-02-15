@@ -17,10 +17,10 @@ import static ssh.SSHConstants.SSH_USER;
 import static ssh.SSHConstants.SSH_USE_KEY;
 
 import java.io.IOException;
-import java.util.Observable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 
+import listeners.BasicObservable;
 import process.ProcessManager;
 import process.TerminalProcess;
 import process.io.ProcessStreamSiphon;
@@ -37,7 +37,7 @@ import ui.terminal.panel.TerminalWindowManager;
  *
  * Created: Apr 24, 2015, 9:56:31 PM 
  */
-public class SSHSession extends Observable implements ProcessStreamSiphon, BroadcastListener, Broadcaster {
+public class SSHSession extends BasicObservable implements ProcessStreamSiphon, BroadcastListener, Broadcaster {
 	
 	boolean connected = false;
 	
@@ -197,7 +197,6 @@ public class SSHSession extends Observable implements ProcessStreamSiphon, Broad
 	}
 	
 	private void changed() {
-		setChanged();
 		notifyObservers( connected );
 		broadcast.broadcast( new BroadcastEvent( this, BroadcastEvent.SSH_SESSION_STATE, connected ? BroadcastEvent.ON : BroadcastEvent.OFF, processName ) );
 	}
